@@ -1,0 +1,27 @@
+{
+  "sampleAnalysis": {
+    "summary": "The corporate travel and expense management industry is experiencing significant growth driven by digital transformation and AI integration.",
+    "sentiment": "positive",
+    "insights": [
+      "AI-powered expense automation is reducing processing time by 60%",
+      "Mobile-first solutions are becoming the industry standard",
+      "Integration with accounting systems is a key differentiator"
+    ],
+    "trending_topics": [
+      "AI automation",
+      "Mobile apps",
+      "Real-time reporting",
+      "Compliance automation"
+    ],
+    "sentiment_data": [
+      { "name": "Positive", "value": 65 },
+      { "name": "Neutral", "value": 25 },
+      { "name": "Negative", "value": 10 }
+    ],
+    "volume_data": [
+      { "source": "Reddit", "posts": 45 },
+      { "source": "HackerNews", "posts": 30 },
+      { "source": "News", "posts": 15 }
+    ]
+  }
+}
