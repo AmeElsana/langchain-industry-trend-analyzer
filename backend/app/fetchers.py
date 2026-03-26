@@ -11,7 +11,7 @@ async def fetch_reddit_posts(keywords: List[str], subreddits: List[str], limit: 
         search_query = " OR ".join(keywords[:5])
         try:
             url = f"https://www.reddit.com/search.json?q={search_query}&sort=relevance&t=month&limit={limit}"
-            headers = {"User-Agent": "EnQue/1.0"}
+            headers = {"User-Agent": "EnQur/1.0"}
             resp = await client.get(url, headers=headers)
             if resp.status_code == 200:
                 data = resp.json()

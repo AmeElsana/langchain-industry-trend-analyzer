@@ -21,7 +21,7 @@ from .chains import (
     get_chat_chain,
 )
 
-app = FastAPI(title="EnQue API", version="1.0.0")
+app = FastAPI(title="EnQur API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,

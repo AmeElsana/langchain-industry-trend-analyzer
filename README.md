@@ -1,4 +1,4 @@
-# TrendLens — AI-Powered Industry Trend Analyzer
+# EnQur — AI-Powered Industry Trend Analyzer
 
 A full-stack application that pulls real public data from Reddit, HackerNews, and news sources, then uses **LangChain + HuggingFace** to identify trends, analyze sentiment, and generate insight reports across multiple industry sectors.
 

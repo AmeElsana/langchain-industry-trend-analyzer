@@ -2,7 +2,7 @@
 
 set -e
 
-echo "🗄️  EnQue Database Setup Script"
+echo "🗄️  EnQur Database Setup Script"
 echo "===================================="
 
 if [ ! -f .env ]; then

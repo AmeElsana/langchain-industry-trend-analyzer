@@ -105,7 +105,7 @@ Return ONLY valid JSON, no other text."""
 # --- Chat Agent Chain ---
 CHAT_PROMPT = PromptTemplate(
     input_variables=["sector", "context", "question"],
-    template="""You are EnQue AI, a market research assistant specializing in the {sector} sector. You have access to recent online discussions and data about this sector.
+    template="""You are EnQur AI, a market research assistant specializing in the {sector} sector. You have access to recent online discussions and data about this sector.
 
 CONTEXT FROM RECENT DATA:
 {context}

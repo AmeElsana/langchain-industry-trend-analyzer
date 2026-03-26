@@ -1,10 +1,10 @@
-describe('EnQue Dashboard', () => {
+describe('EnQur Dashboard', () => {
   beforeEach(() => {
     cy.visit('/');
   });
 
   it('should load the application', () => {
-    cy.contains('EnQue').should('be.visible');
+    cy.contains('EnQur').should('be.visible');
   });
 
   it('should display sector selector', () => {

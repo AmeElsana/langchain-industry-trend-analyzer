@@ -2,7 +2,7 @@
 
 set -e
 
-echo "🚀 EnQue Deployment Script"
+echo "🚀 EnQur Deployment Script"
 echo "================================"
 
 check_command() {

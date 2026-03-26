@@ -2,7 +2,7 @@
 
 set -e
 
-echo "🧪 EnQue Test Suite"
+echo "🧪 EnQur Test Suite"
 echo "========================"
 
 RUN_BACKEND=false
