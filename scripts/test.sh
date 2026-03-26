@@ -2,7 +2,7 @@
 
 set -e
 
-echo "🧪 TrendLens Test Suite"
+echo "🧪 EnQue Test Suite"
 echo "========================"
 
 RUN_BACKEND=false

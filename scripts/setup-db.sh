@@ -2,7 +2,7 @@
 
 set -e
 
-echo "🗄️  TrendLens Database Setup Script"
+echo "🗄️  EnQue Database Setup Script"
 echo "===================================="
 
 if [ ! -f .env ]; then

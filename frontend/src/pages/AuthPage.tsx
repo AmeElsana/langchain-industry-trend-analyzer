@@ -33,7 +33,7 @@ export default function AuthPage() {
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/20">
             <Search className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white">TrendLens</h1>
+          <h1 className="text-2xl font-bold text-white">EnQue</h1>
           <p className="text-dark-400 mt-1 text-sm">Industry Trend Analyzer</p>
         </div>
 

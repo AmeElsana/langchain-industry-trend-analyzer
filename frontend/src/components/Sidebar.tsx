@@ -20,7 +20,7 @@ export default function Sidebar() {
             <Search className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white leading-tight">TrendLens</h1>
+            <h1 className="text-lg font-bold text-white leading-tight">EnQue</h1>
             <p className="text-xs text-dark-400">Industry Trend Analyzer</p>
           </div>
         </div>

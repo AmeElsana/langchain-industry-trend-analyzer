@@ -110,7 +110,7 @@ async function fetchRedditPosts(
 
   try {
     const resp = await fetch(url, {
-      headers: { "User-Agent": "TrendLens/1.0" },
+      headers: { "User-Agent": "EnQue/1.0" },
     });
     if (resp.ok) {
       const data = await resp.json();

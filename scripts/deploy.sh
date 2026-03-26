@@ -2,7 +2,7 @@
 
 set -e
 
-echo "🚀 TrendLens Deployment Script"
+echo "🚀 EnQue Deployment Script"
 echo "================================"
 
 check_command() {

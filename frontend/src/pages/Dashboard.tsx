@@ -49,7 +49,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-white">Welcome to TrendLens</h1>
+        <h1 className="text-3xl font-bold text-white">Welcome to EnQue</h1>
         <p className="text-dark-400 mt-2 text-lg">
           AI-powered industry trend analysis across multiple sectors
         </p>

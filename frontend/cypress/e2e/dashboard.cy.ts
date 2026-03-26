@@ -1,10 +1,10 @@
-describe('TrendLens Dashboard', () => {
+describe('EnQue Dashboard', () => {
   beforeEach(() => {
     cy.visit('/');
   });
 
   it('should load the application', () => {
-    cy.contains('TrendLens').should('be.visible');
+    cy.contains('EnQue').should('be.visible');
   });
 
   it('should display sector selector', () => {
