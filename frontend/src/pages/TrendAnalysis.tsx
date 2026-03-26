@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
-import { TrendingUp, Loader2, AlertCircle } from 'lucide-react';
+import { TrendingUp, Loader as Loader2, CircleAlert as AlertCircle } from 'lucide-react';
 import { getSectors, analyzeTrends } from '../api';
 import { Sector, TrendResult } from '../types';
 import SectorSelector from '../components/SectorSelector';
@@ -26,7 +26,7 @@ export default function TrendAnalysis() {
       const data = await analyzeTrends(selectedSector, customTopic);
       setResult(data);
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Failed to analyze trends. Make sure the backend is running.');
+      setError(err?.message || 'Failed to analyze trends.');
     } finally {
       setLoading(false);
     }

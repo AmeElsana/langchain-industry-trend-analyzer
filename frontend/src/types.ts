@@ -40,3 +40,21 @@ export interface ChatMessage {
   content: string;
   timestamp: string;
 }
+
+export interface HousingDataPoint {
+  date: string;
+  value: number;
+}
+
+export interface HousingSeries {
+  id: string;
+  title: string;
+  units: string;
+  frequency: string;
+  data: HousingDataPoint[];
+}
+
+export interface HousingDataResponse {
+  series: HousingSeries[];
+  fetched_at: string;
+}

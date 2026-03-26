@@ -1,19 +1,22 @@
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Bot, FileText, Home, Search, TrendingUp } from 'lucide-react';
+import { ChartBar as BarChart3, Clock, Hop as Home, Search, TrendingUp, LogOut, Hop as HouseIcon } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Dashboard' },
   { to: '/trends', icon: TrendingUp, label: 'Trend Analysis' },
-  { to: '/insights', icon: Bot, label: 'AI Insights' },
-  { to: '/reports', icon: FileText, label: 'Reports' },
+  { to: '/housing', icon: HouseIcon, label: 'Housing Data' },
+  { to: '/history', icon: Clock, label: 'History' },
 ];
 
 export default function Sidebar() {
+  const { user, signOut } = useAuth();
+
   return (
     <aside className="w-64 bg-dark-900 border-r border-dark-700 flex flex-col h-screen sticky top-0">
       <div className="p-6 border-b border-dark-700">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-primary-600 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center">
             <Search className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -32,7 +35,7 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-primary-600/20 text-primary-400'
+                  ? 'bg-blue-500/15 text-blue-400'
                   : 'text-dark-300 hover:text-white hover:bg-dark-800'
               }`
             }
@@ -43,10 +46,21 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-dark-700">
+      <div className="p-4 border-t border-dark-700 space-y-3">
+        {user && (
+          <div className="flex items-center justify-between px-3 py-2">
+            <span className="text-xs text-dark-400 truncate max-w-[140px]">{user.email}</span>
+            <button
+              onClick={signOut}
+              className="p-1.5 rounded-lg hover:bg-dark-800 text-dark-500 hover:text-dark-200 transition-colors"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-dark-800">
-          <BarChart3 className="w-4 h-4 text-primary-400" />
-          <span className="text-xs text-dark-300">Powered by LangChain</span>
+          <BarChart3 className="w-4 h-4 text-blue-400" />
+          <span className="text-xs text-dark-300">Powered by Gemini AI</span>
         </div>
       </div>
     </aside>
