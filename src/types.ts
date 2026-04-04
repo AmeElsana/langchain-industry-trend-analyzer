@@ -19,6 +19,11 @@ export interface TrendResult {
   volume_over_time: { date: string; count: number }[];
   key_insights: string[];
   sources: { title: string; source: string; url: string; date: string; snippet: string }[];
+  data_sources?: {
+    reddit: number;
+    hackernews: number;
+    newsapi: number;
+  };
 }
 
 export interface AnalysisRequest {
@@ -39,6 +44,12 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+}
+
+export interface ChatResponse {
+  response: string;
+  retrieved_count: number;
+  sources: { title: string; source: string; url: string; similarity: number }[];
 }
 
 export interface HousingDataPoint {

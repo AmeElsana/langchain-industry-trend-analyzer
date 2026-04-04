@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { ChartBar as BarChart3, Clock, Hop as Home, Search, TrendingUp, LogOut, Hop as HouseIcon } from 'lucide-react';
+import { ChartBar as BarChart3, Clock, Hop as Home, Search, TrendingUp, LogOut, Hop as HouseIcon, MessageSquare } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Dashboard' },
   { to: '/trends', icon: TrendingUp, label: 'Trend Analysis' },
+  { to: '/agent', icon: MessageSquare, label: 'AI Insights Agent' },
   { to: '/housing', icon: HouseIcon, label: 'Housing Data' },
   { to: '/history', icon: Clock, label: 'History' },
 ];
@@ -60,7 +61,7 @@ export default function Sidebar() {
         )}
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-dark-800">
           <BarChart3 className="w-4 h-4 text-blue-400" />
-          <span className="text-xs text-dark-300">Powered by Gemini AI</span>
+          <span className="text-xs text-dark-300">RAG + Gemini AI</span>
         </div>
       </div>
     </aside>

@@ -3,11 +3,13 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { TrendingUp, Loader as Loader2, CircleAlert as AlertCircle } from 'lucide-react';
 import { getSectors, analyzeTrends } from '../api';
 import { Sector, TrendResult } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 import SectorSelector from '../components/SectorSelector';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899'];
 
 export default function TrendAnalysis() {
+  const { user } = useAuth();
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [selectedSector, setSelectedSector] = useState('corporate_travel');
   const [customTopic, setCustomTopic] = useState('');
@@ -23,10 +25,11 @@ export default function TrendAnalysis() {
     setLoading(true);
     setError('');
     try {
-      const data = await analyzeTrends(selectedSector, customTopic);
+      const data = await analyzeTrends(selectedSector, customTopic, user?.id);
       setResult(data);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to analyze trends.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to analyze trends.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -80,6 +83,26 @@ export default function TrendAnalysis() {
           <div className="bg-dark-800/50 border border-dark-700 rounded-xl p-6">
             <h2 className="text-lg font-semibold text-white mb-2">Summary</h2>
             <p className="text-dark-300 text-sm leading-relaxed">{result.summary}</p>
+            {result.data_sources && (
+              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-dark-700">
+                <span className="text-xs text-dark-500">Data sources:</span>
+                {result.data_sources.reddit > 0 && (
+                  <span className="text-xs px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-400">
+                    Reddit ({result.data_sources.reddit})
+                  </span>
+                )}
+                {result.data_sources.hackernews > 0 && (
+                  <span className="text-xs px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400">
+                    HackerNews ({result.data_sources.hackernews})
+                  </span>
+                )}
+                {result.data_sources.newsapi > 0 && (
+                  <span className="text-xs px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400">
+                    NewsAPI ({result.data_sources.newsapi})
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">

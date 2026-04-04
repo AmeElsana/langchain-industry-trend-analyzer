@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.100.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,6 +22,7 @@ interface Post {
 interface AnalyzeRequest {
   sector_id: string;
   custom_topic?: string;
+  user_id?: string;
 }
 
 const SECTORS: Record<
@@ -81,17 +83,6 @@ const SECTORS: Record<
       "climate tech",
     ],
     subreddits: ["sustainability", "environment", "climate", "RenewableEnergy"],
-  },
-  real_estate: {
-    name: "Real Estate & Housing",
-    keywords: [
-      "housing market",
-      "home prices",
-      "mortgage rates",
-      "real estate",
-      "housing affordability",
-    ],
-    subreddits: ["RealEstate", "REBubble", "FirstTimeHomeBuyer", "homeowners"],
   },
   custom: {
     name: "Custom Topic",
@@ -169,7 +160,101 @@ async function fetchHackerNewsPosts(
   return posts;
 }
 
-function extractTopics(posts: Post[]): { topic: string; count: number; sentiment: number }[] {
+async function fetchNewsAPIPosts(
+  keywords: string[],
+  limit = 20
+): Promise<Post[]> {
+  const posts: Post[] = [];
+  const apiKey = Deno.env.get("NEWS_API_KEY");
+  if (!apiKey) return posts;
+
+  const query = encodeURIComponent(keywords.slice(0, 3).join(" OR "));
+  const fromDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  try {
+    const url = `https://newsapi.org/v2/everything?q=${query}&from=${fromDate}&sortBy=relevancy&pageSize=${limit}&apiKey=${apiKey}`;
+    const resp = await fetch(url);
+    if (resp.ok) {
+      const data = await resp.json();
+      for (const article of data?.articles || []) {
+        posts.push({
+          title: article.title || "",
+          text: article.description || "",
+          score: 0,
+          num_comments: 0,
+          url: article.url || "",
+          created: article.publishedAt || "",
+          source: `NewsAPI`,
+        });
+      }
+    }
+  } catch (_e) {
+    // silently fail
+  }
+  return posts;
+}
+
+function generateEmbedding(text: string): number[] {
+  const tokens = text.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(Boolean);
+  const dim = 384;
+  const vec = new Array(dim).fill(0);
+
+  for (const token of tokens) {
+    let hash = 0;
+    for (let i = 0; i < token.length; i++) {
+      hash = ((hash << 5) - hash + token.charCodeAt(i)) | 0;
+    }
+    for (let d = 0; d < dim; d++) {
+      const seed = ((hash * (d + 1) * 2654435761) >>> 0) / 4294967296;
+      vec[d] += (seed - 0.5) * 2;
+    }
+  }
+
+  const norm = Math.sqrt(vec.reduce((s, v) => s + v * v, 0)) || 1;
+  return vec.map((v) => v / norm);
+}
+
+async function storeEmbeddings(
+  posts: Post[],
+  sector: string,
+  userId: string
+): Promise<void> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, serviceKey);
+
+  await supabase
+    .from("post_embeddings")
+    .delete()
+    .eq("user_id", userId)
+    .eq("sector", sector);
+
+  const rows = posts.slice(0, 80).map((p) => ({
+    user_id: userId,
+    sector,
+    source: p.source,
+    title: p.title,
+    content: (p.text || "").slice(0, 500),
+    url: p.url,
+    score: p.score,
+    embedding: JSON.stringify(generateEmbedding(`${p.title} ${p.text}`)),
+  }));
+
+  if (rows.length > 0) {
+    const batchSize = 20;
+    for (let i = 0; i < rows.length; i += batchSize) {
+      await supabase
+        .from("post_embeddings")
+        .insert(rows.slice(i, i + batchSize));
+    }
+  }
+}
+
+function extractTopics(
+  posts: Post[]
+): { topic: string; count: number; sentiment: number }[] {
   const wordFreq: Record<string, number> = {};
   const stopWords = new Set([
     "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
@@ -224,9 +309,7 @@ function extractTopics(posts: Post[]): { topic: string; count: number; sentiment
 
   for (const [word, count] of Object.entries(wordFreq)) {
     if (count >= 3) {
-      const alreadyCovered = allTopics.some((t) =>
-        t.topic.includes(word)
-      );
+      const alreadyCovered = allTopics.some((t) => t.topic.includes(word));
       if (!alreadyCovered) {
         allTopics.push({ topic: word, count });
       }
@@ -333,12 +416,19 @@ function buildPostsSummaryForAI(posts: Post[], sectorName: string): string {
     .slice(0, 25);
 
   const postSummaries = topPosts
-    .map((p, i) => `${i + 1}. [${p.source}] "${p.title}" (score: ${p.score}, comments: ${p.num_comments})${p.text ? `\n   ${p.text.slice(0, 200)}` : ""}`)
+    .map(
+      (p, i) =>
+        `${i + 1}. [${p.source}] "${p.title}" (score: ${p.score}, comments: ${p.num_comments})${p.text ? `\n   ${p.text.slice(0, 200)}` : ""}`
+    )
     .join("\n");
+
+  const redditCount = posts.filter((p) => p.source === "Reddit").length;
+  const hnCount = posts.filter((p) => p.source === "HackerNews").length;
+  const newsCount = posts.filter((p) => p.source === "NewsAPI").length;
 
   return `Sector: ${sectorName}
 Total posts analyzed: ${posts.length}
-Sources: Reddit (${posts.filter(p => p.source === "Reddit").length}), HackerNews (${posts.filter(p => p.source === "HackerNews").length})
+Sources: Reddit (${redditCount}), HackerNews (${hnCount}), NewsAPI (${newsCount})
 
 Top posts by engagement:
 ${postSummaries}`;
@@ -357,7 +447,9 @@ async function generateAIAnalysis(
   }
 
   const postContext = buildPostsSummaryForAI(posts, sectorName);
-  const topicList = topics.map(t => `${t.topic} (${t.count} mentions)`).join(", ");
+  const topicList = topics
+    .map((t) => `${t.topic} (${t.count} mentions)`)
+    .join(", ");
 
   const prompt = `You are an expert industry analyst. Analyze the following social media discussions about "${sectorName}" and provide actionable insights.
 
@@ -414,7 +506,11 @@ Requirements:
 
     const parsed = JSON.parse(text);
 
-    if (parsed.summary && Array.isArray(parsed.insights) && parsed.insights.length >= 3) {
+    if (
+      parsed.summary &&
+      Array.isArray(parsed.insights) &&
+      parsed.insights.length >= 3
+    ) {
       return {
         summary: parsed.summary,
         insights: parsed.insights.slice(0, 5),
@@ -436,14 +532,19 @@ function fallbackAnalysis(
   const topTopics = topics.slice(0, 3).map((t) => t.topic);
   const redditCount = posts.filter((p) => p.source === "Reddit").length;
   const hnCount = posts.filter((p) => p.source === "HackerNews").length;
-  const avgScore = posts.reduce((sum, p) => sum + p.score, 0) / posts.length;
+  const newsCount = posts.filter((p) => p.source === "NewsAPI").length;
+  const avgScore =
+    posts.reduce((sum, p) => sum + p.score, 0) / (posts.length || 1);
   const highEngagement = posts.filter((p) => p.num_comments > 10).length;
 
   let summary = `Analysis of ${posts.length} recent discussions across `;
   const sources = [];
   if (redditCount > 0) sources.push(`Reddit (${redditCount} posts)`);
   if (hnCount > 0) sources.push(`HackerNews (${hnCount} posts)`);
-  summary += sources.join(" and ") + ` reveals key trends in the ${sectorName} space. `;
+  if (newsCount > 0) sources.push(`NewsAPI (${newsCount} articles)`);
+  summary +=
+    sources.join(", ") +
+    ` reveals key trends in the ${sectorName} space. `;
 
   if (topTopics.length > 0) {
     summary += `The most discussed themes include ${topTopics.join(", ")}. `;
@@ -484,7 +585,7 @@ function fallbackAnalysis(
 
   if (redditCount > 0 && hnCount > 0) {
     insights.push(
-      `Discussion is active across both Reddit (${redditCount} posts) and HackerNews (${hnCount} posts), showing broad industry interest.`
+      `Discussion is active across Reddit (${redditCount} posts), HackerNews (${hnCount} posts)${newsCount > 0 ? `, and NewsAPI (${newsCount} articles)` : ""}, showing broad industry interest.`
     );
   }
 
@@ -512,6 +613,7 @@ Deno.serve(async (req: Request) => {
     const body: AnalyzeRequest = await req.json();
     const sectorId = body.sector_id;
     const customTopic = body.custom_topic;
+    const userId = body.user_id;
 
     const sector = SECTORS[sectorId];
     if (!sector) {
@@ -534,7 +636,9 @@ Deno.serve(async (req: Request) => {
 
     if (keywords.length === 0) {
       return new Response(
-        JSON.stringify({ error: "No keywords provided. Enter a custom topic." }),
+        JSON.stringify({
+          error: "No keywords provided. Enter a custom topic.",
+        }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -542,12 +646,13 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const [redditPosts, hnPosts] = await Promise.all([
+    const [redditPosts, hnPosts, newsPosts] = await Promise.all([
       fetchRedditPosts(keywords),
       fetchHackerNewsPosts(keywords),
+      fetchNewsAPIPosts(keywords),
     ]);
 
-    const allPosts = [...redditPosts, ...hnPosts];
+    const allPosts = [...redditPosts, ...hnPosts, ...newsPosts];
 
     if (allPosts.length === 0) {
       return new Response(
@@ -564,8 +669,19 @@ Deno.serve(async (req: Request) => {
 
     const topics = extractTopics(allPosts);
     const sentiment = analyzeSentiment(allPosts);
-    const { summary, insights } = await generateAIAnalysis(allPosts, sectorName, topics, sentiment);
+    const { summary, insights } = await generateAIAnalysis(
+      allPosts,
+      sectorName,
+      topics,
+      sentiment
+    );
     const volumeData = generateVolumeData(allPosts);
+
+    if (userId) {
+      EdgeRuntime.waitUntil(
+        storeEmbeddings(allPosts, sectorName, userId)
+      );
+    }
 
     const sources = allPosts.slice(0, 15).map((p) => ({
       title: p.title,
@@ -584,6 +700,11 @@ Deno.serve(async (req: Request) => {
       volume_over_time: volumeData,
       key_insights: insights,
       sources,
+      data_sources: {
+        reddit: redditPosts.length,
+        hackernews: hnPosts.length,
+        newsapi: newsPosts.length,
+      },
     };
 
     return new Response(JSON.stringify(result), {

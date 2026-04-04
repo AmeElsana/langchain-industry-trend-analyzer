@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Hop as HouseIcon, Clock, ChartBar as BarChart3, ArrowRight, Globe, Search, Zap } from 'lucide-react';
+import { TrendingUp, Hop as HouseIcon, Clock, ChartBar as BarChart3, ArrowRight, Globe, Search, Zap, MessageSquare, Database } from 'lucide-react';
 import { getSectors } from '../api';
 import { Sector } from '../types';
 
@@ -16,10 +16,18 @@ export default function Dashboard() {
     {
       icon: TrendingUp,
       title: 'Trend Analysis',
-      desc: 'Analyze real-time trends from Reddit and HackerNews across any industry sector with AI-powered insights.',
+      desc: 'Analyze real-time trends from Reddit, HackerNews, and NewsAPI across 5 industry verticals with AI-powered insights.',
       path: '/trends',
       color: 'text-blue-400',
       bg: 'bg-blue-500/10',
+    },
+    {
+      icon: MessageSquare,
+      title: 'AI Insights Agent',
+      desc: 'Ask natural-language questions over live market data. Powered by RAG with vector similarity search for stakeholder-ready answers.',
+      path: '/agent',
+      color: 'text-teal-400',
+      bg: 'bg-teal-500/10',
     },
     {
       icon: HouseIcon,
@@ -40,10 +48,10 @@ export default function Dashboard() {
   ];
 
   const stats = [
-    { label: 'Sectors Covered', value: sectors.filter(s => s.id !== 'custom').length || 6, icon: Globe },
+    { label: 'Sectors Covered', value: sectors.filter(s => s.id !== 'custom').length || 5, icon: Globe },
     { label: 'Data Sources', value: 3, icon: Search },
+    { label: 'AI Pipeline', value: 'RAG', icon: Database },
     { label: 'AI Engine', value: 'Gemini', icon: Zap },
-    { label: 'Chart Types', value: 5, icon: BarChart3 },
   ];
 
   return (
@@ -69,7 +77,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-2 gap-6">
         {features.map(({ icon: Icon, title, desc, path, color, bg }) => (
           <button
             key={path}
@@ -93,9 +101,9 @@ export default function Dashboard() {
         <div className="grid md:grid-cols-4 gap-4 mt-4">
           {[
             { step: '1', text: 'Select an industry sector or enter a custom topic' },
-            { step: '2', text: 'Data is fetched from Reddit, HackerNews, and FRED' },
-            { step: '3', text: 'Gemini AI analyzes sentiment, trends, and key themes' },
-            { step: '4', text: 'View interactive visualizations and save analyses' },
+            { step: '2', text: 'Data is aggregated from Reddit, HackerNews, and NewsAPI' },
+            { step: '3', text: 'Posts are embedded and stored in a vector database for RAG' },
+            { step: '4', text: 'AI analyzes trends and powers natural-language queries' },
           ].map(({ step, text }) => (
             <div key={step} className="flex items-start gap-3">
               <div className="w-7 h-7 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center text-sm font-bold shrink-0">
@@ -112,11 +120,11 @@ export default function Dashboard() {
           <div>
             <h3 className="text-lg font-semibold text-white">Tech Stack</h3>
             <p className="text-sm text-dark-400 mt-1">
-              React + Vite | TailwindCSS | Recharts | Supabase | Gemini AI
+              React + TypeScript + Vite | TailwindCSS | Recharts | Supabase (pgvector) | Gemini AI | RAG Pipeline
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
-            {['React', 'Supabase', 'Gemini', 'FRED'].map((t) => (
+            {['React', 'TypeScript', 'Supabase', 'pgvector', 'Gemini AI', 'RAG'].map((t) => (
               <span key={t} className="px-3 py-1 rounded-full bg-dark-800 border border-dark-600 text-xs text-dark-300">
                 {t}
               </span>

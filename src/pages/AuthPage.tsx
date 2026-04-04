@@ -131,7 +131,7 @@ export default function AuthPage() {
         </div>
 
         <p className="text-center text-dark-500 text-xs mt-6">
-          Real-time trend analysis powered by Reddit, HackerNews & FRED
+          Real-time trend analysis powered by Reddit, HackerNews & NewsAPI with RAG
         </p>
       </div>
     </div>
